@@ -112,6 +112,13 @@ export const useLogsData = () => {
   const [showUserInfo, setShowUserInfoModal] = useState(false);
   const [userInfoData, setUserInfoData] = useState(null);
 
+  // Consumption detail modal state
+  const [showConsumptionDetail, setShowConsumptionDetail] = useState(false);
+  const [consumptionDetailData, setConsumptionDetailData] = useState({
+    userQuestion: '',
+    aiResponse: '',
+  });
+
   // Load saved column preferences from localStorage
   useEffect(() => {
     const savedColumns = localStorage.getItem(STORAGE_KEY);
@@ -302,6 +309,30 @@ export const useLogsData = () => {
     } else {
       showError(message);
     }
+  };
+
+  // Consumption detail function
+  const showConsumptionDetailFunc = (logRecord) => {
+    let userQuestion = '';
+    let aiResponse = '';
+    
+    try {
+      const other = getLogOther(logRecord.other);
+      if (other?.user_question) {
+        userQuestion = other.user_question;
+      }
+      if (other?.ai_response) {
+        aiResponse = other.ai_response;
+      }
+    } catch (e) {
+      console.error('Failed to parse log other data', e);
+    }
+
+    setConsumptionDetailData({
+      userQuestion,
+      aiResponse,
+    });
+    setShowConsumptionDetail(true);
   };
 
   // Format logs data
@@ -645,6 +676,12 @@ export const useLogsData = () => {
     setShowUserInfoModal,
     userInfoData,
     showUserInfoFunc,
+
+    // Consumption detail modal
+    showConsumptionDetail,
+    setShowConsumptionDetail,
+    consumptionDetailData,
+    showConsumptionDetailFunc,
 
     // Functions
     loadLogs,
