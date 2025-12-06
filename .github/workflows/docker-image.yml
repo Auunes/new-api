@@ -27,4 +27,4 @@ jobs:
         with:
           context: .
           push: true
-          tags: ghcr.io/auunes/new-api:latest
+          tags: ghcr.io/${{ steps.vars.outputs.username }}/new-api:latest
