@@ -25,6 +25,7 @@ import {
   Tooltip,
   Popover,
   Typography,
+  Button,
 } from '@douyinfe/semi-ui';
 import {
   timestamp2string,
@@ -240,6 +241,7 @@ export const getLogsColumns = ({
   COLUMN_KEYS,
   copyText,
   showUserInfoFunc,
+  showConsumptionDetailFunc,
   isAdminUser,
 }) => {
   return [
@@ -525,20 +527,51 @@ export const getLogsColumns = ({
       fixed: 'right',
       render: (text, record, index) => {
         let other = getLogOther(record.other);
+        const hasQaDetail =
+          record.type === 2 &&
+          Boolean(other?.user_question || other?.ai_response);
+
+        const renderDetailParagraph = (content, options = {}) => (
+          <Typography.Paragraph
+            ellipsis={options.ellipsis}
+            style={{
+              maxWidth: 240,
+              whiteSpace: options.whiteSpace || 'normal',
+            }}
+          >
+            {content}
+          </Typography.Paragraph>
+        );
+
+        const detailButton = hasQaDetail ? (
+          <Button
+            size='small'
+            onClick={(event) => {
+              event.stopPropagation();
+              showConsumptionDetailFunc(record);
+            }}
+          >
+            {t('详细显示')}
+          </Button>
+        ) : null;
+
         if (other == null || record.type !== 2) {
-          return (
-            <Typography.Paragraph
-              ellipsis={{
-                rows: 2,
-                showTooltip: {
-                  type: 'popover',
-                  opts: { style: { width: 240 } },
-                },
-              }}
-              style={{ maxWidth: 240 }}
-            >
-              {text}
-            </Typography.Paragraph>
+          const paragraph = renderDetailParagraph(text, {
+            ellipsis: {
+              rows: 2,
+              showTooltip: {
+                type: 'popover',
+                opts: { style: { width: 240 } },
+              },
+            },
+          });
+          return detailButton ? (
+            <Space vertical align={'start'}>
+              {paragraph}
+              {detailButton}
+            </Space>
+          ) : (
+            paragraph
           );
         }
         let content = other?.claude
@@ -578,15 +611,19 @@ export const getLogsColumns = ({
               other?.is_system_prompt_overwritten,
               'openai',
             );
-        return (
-          <Typography.Paragraph
-            ellipsis={{
-              rows: 3,
-            }}
-            style={{ maxWidth: 240, whiteSpace: 'pre-line' }}
-          >
-            {content}
-          </Typography.Paragraph>
+        const paragraph = renderDetailParagraph(content, {
+          ellipsis: {
+            rows: 3,
+          },
+          whiteSpace: 'pre-line',
+        });
+        return detailButton ? (
+          <Space vertical align={'start'}>
+            {paragraph}
+            {detailButton}
+          </Space>
+        ) : (
+          paragraph
         );
       },
     },
