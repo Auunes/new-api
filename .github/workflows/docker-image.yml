@@ -1,15 +1,27 @@
-name: Docker Image CI
+name: Build and Push Docker Image
 
+# 仅在 main 分支推送时触发
 on:
   push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+    branches: [main]
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    # 必须授予推送镜像的权限
+    permissions:
+      packages: write
+      contents: read
+
     steps:
-    - uses: actions/checkout@v4
-    - name: Build the Docker image
-      run: docker build . --file Dockerfile --tag my-image-name:$(date +%s)
+      - uses: actions/checkout@v4
+
+      - name: Login to GHCR
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+      - name: Build and Push
+        run: |
+          IMAGE=ghcr.io/${{ github.repository_owner }}/new-api:latest
+          docker build -t $IMAGE .
+          docker push $IMAGE
+          echo "✅ 镜像推送成功：$IMAGE"
