@@ -21,10 +21,15 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # 用官方Action替代原生docker命令
+      # 动态获取小写的用户名，避免大小写问题
+      - name: Set lowercase username
+        id: vars
+        run: echo "username=$(echo ${{ github.repository_owner }} | tr '[:upper:]' '[:lower:]')" >> $GITHUB_OUTPUT
+
       - name: Build and Push
         uses: docker/build-push-action@v6
         with:
           context: .
           push: true
+          # 使用小写用户名标签
           tags: ghcr.io/${{ steps.vars.outputs.username }}/new-api:latest
